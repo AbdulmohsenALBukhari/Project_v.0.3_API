@@ -17,8 +17,26 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(
     builder.Configuration.GetConnectionString("MyConnection")
     ));
 
+//Connection with table and if condition
+builder.Services.AddIdentity<AccountUserModel, AccountRoleModel>(options =>
+{
+    options.SignIn.RequireConfirmedEmail = false;
+    options.Lockout.MaxFailedAccessAttempts = 6;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+
+}).AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
 
 
+builder.Services.AddCors();
+
+builder.Services.AddCors((setup) =>
+{
+    setup.AddPolicy("default", (options) =>
+    {
+        options.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin();
+    });
+});
 
 var app = builder.Build();
 
@@ -30,6 +48,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+//Add new
+app.UseCors(x => x.WithOrigins("http://localhost:5013").AllowAnyHeader().AllowAnyMethod());
+app.UseRouting();
+app.UseAuthentication();
 
 app.UseAuthorization();
 
