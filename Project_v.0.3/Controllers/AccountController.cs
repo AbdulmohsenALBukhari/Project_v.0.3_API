@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Project_v._0._3.Data;
 using Project_v._0._3.Model;
 using Project_v._0._3.ModelViews;
+using System.Web;
 
 namespace Project_v._0._3.Controllers
 {
@@ -36,24 +38,82 @@ namespace Project_v._0._3.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register(RegisterModel model)
         {
-            if(ModelState.IsValid)
+            if(model != null && ModelState.IsValid)
             {
-                var user = new AccountUserModel
+                if (!Existes(model.Email,model.UserName))
                 {
-                    UserName = model.UserName,
-                    Email = model.Email
-                };
+                    var user = new AccountUserModel
+                    {
+                        UserName = model.UserName,
+                        Email = model.Email
+                    };
 
-                var result = await userManager.CreateAsync(user,model.PasswordHash);
+                    var result = await userManager.CreateAsync(user, model.PasswordHash);
 
+                    if (result.Succeeded)
+                    {
+                        var token = await userManager.GenerateEmailConfirmationTokenAsync(user); // Create token form User
+                        var confirmLink = Url.Action("RegistreationConfirm", "Account",new 
+                        {
+                            Id = user.Id,
+                            Token = HttpUtility.UrlEncode(token),
+                        },Request.Scheme);
+//                        string text = "Please Confirm Registration at our sute";
+                        var link = "<a href=\"" + confirmLink + "\">Confirm</a>";
+                        return Ok(confirmLink);
+                    }
+                    return BadRequest(result.Errors+" Not Succeeded");
+                }
+                return BadRequest("Email or userNaem is Existes");
+            }//end if check model
+            
+            return BadRequest(model);
+        }
+
+        [HttpPost]
+        [Route("Login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Login(LoginModel model)
+        {
+            if(model != null && ModelState.IsValid)
+            {
+
+            }
+            return BadRequest(model);
+        }
+
+
+
+
+        private bool Existes(string email, string userName)
+        {
+            return dbContext.Users.Any(x => x.Email == email || x.UserName == userName);
+        }
+        ////////////////////////////////////////////////////////////////////////////////////////
+        [HttpGet]
+        public async Task<IActionResult> RegistreationConfirm(string id, string Token)
+        {
+            // Check id or Token is empty
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(Token))
+            {
+                return BadRequest("ID or Token is Empty");
+            }
+            //  Find Id 
+            var user = await userManager.FindByIdAsync(id);
+            if (user != null)
+            {
+                //  check the token and decode link and make  in datebase
+                var result = await userManager.ConfirmEmailAsync(user, HttpUtility.UrlDecode(Token));
                 if (result.Succeeded)
                 {
-                    return Ok(result);
+                    return Ok("Eamil Confirm Seccefuly");
                 }
-                return BadRequest(result.Errors);
+                return BadRequest(result.Errors + "Not Succeeded");
             }
-            return BadRequest(ModelState.ErrorCount);
+            return BadRequest("Error RegistreationConfirm");
         }
+
+
 
     }
 }

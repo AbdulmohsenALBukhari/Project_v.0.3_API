@@ -50,7 +50,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 //Add new
-app.UseCors(x => x.WithOrigins("http://localhost:5013").AllowAnyHeader().AllowAnyMethod());
+app.UseCors(x => x.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod());
 app.UseRouting();
 app.UseAuthentication();
 
