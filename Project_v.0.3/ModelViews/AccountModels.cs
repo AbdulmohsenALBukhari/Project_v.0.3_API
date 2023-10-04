@@ -22,5 +22,7 @@ namespace Project_v._0._3.ModelViews
         public required string UserName { get; set; }
         [Required]
         public required string PasswordHash { get; set; }
+        [Required]
+        public required bool RememberMe { get; set; }
     }
 }

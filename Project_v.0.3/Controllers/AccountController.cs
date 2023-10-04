@@ -11,7 +11,7 @@ namespace Project_v._0._3.Controllers
 {
     [Route("api/[Controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class AccountController : ControllerBase
     {
         private readonly AppDbContext dbContext;
@@ -77,9 +77,20 @@ namespace Project_v._0._3.Controllers
         {
             if(model != null && ModelState.IsValid)
             {
-
+                var userLogin = await userManager.FindByNameAsync(model.UserName);
+                if (userLogin != null && userLogin.EmailConfirmed)
+                {
+                    //  check if user and password is true or fales and if user login more 3 time block user
+                    var result = await signInManager.PasswordSignInAsync(userLogin, model.PasswordHash, model.RememberMe, false);
+                    if (result.Succeeded)
+                    {
+                        return Ok(result + " => Succeefuly");
+                    }
+                    return BadRequest(result);
+                }
+                return BadRequest("userLogin is null => " + userLogin + "///or User is not Confirm Email => " + userLogin.EmailConfirmed);
             }
-            return BadRequest(model);
+            return BadRequest("model is null or Model state is not valid");
         }
 
 
@@ -91,6 +102,7 @@ namespace Project_v._0._3.Controllers
         }
         ////////////////////////////////////////////////////////////////////////////////////////
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> RegistreationConfirm(string id, string Token)
         {
             // Check id or Token is empty
