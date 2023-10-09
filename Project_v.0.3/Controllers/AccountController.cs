@@ -40,6 +40,10 @@ namespace Project_v._0._3.Controllers
         {
             if(model != null && ModelState.IsValid)
             {
+                if (model.PasswordHash.Length < 6)
+                {
+                    return BadRequest("password too short");
+                }
                 if (!Existes(model.Email,model.UserName))
                 {
                     var user = new AccountUserModel
@@ -88,7 +92,7 @@ namespace Project_v._0._3.Controllers
                     }
                     return BadRequest(result);
                 }
-                return BadRequest("userLogin is null => " + userLogin + "///or User is not Confirm Email => " + userLogin.EmailConfirmed);
+                return BadRequest("userLogin is null => " + userLogin + "///or User is not Confirm Email => ");
             }
             return BadRequest("model is null or Model state is not valid");
         }
