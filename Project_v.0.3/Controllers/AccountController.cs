@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Project_v._0._3.Data;
 using Project_v._0._3.Model;
 using Project_v._0._3.ModelViews;
+using System.Text.RegularExpressions;
 using System.Web;
 
 namespace Project_v._0._3.Controllers
@@ -40,37 +41,36 @@ namespace Project_v._0._3.Controllers
         {
             if(model != null && ModelState.IsValid)
             {
-                if (model.PasswordHash.Length < 6)
+                if (!PasswordMatch(model.PasswordHash) || IsValidEmail(model.Email))
                 {
-                    return BadRequest("password too short");
-                }
-                if (!Existes(model.Email,model.UserName))
-                {
-                    var user = new AccountUserModel
+                    if (!Existes(model.Email, model.UserName))
                     {
-                        UserName = model.UserName,
-                        Email = model.Email
-                    };
-
-                    var result = await userManager.CreateAsync(user, model.PasswordHash);
-
-                    if (result.Succeeded)
-                    {
-                        var token = await userManager.GenerateEmailConfirmationTokenAsync(user); // Create token form User
-                        var confirmLink = Url.Action("RegistreationConfirm", "Account",new 
+                        var user = new AccountUserModel
                         {
-                            Id = user.Id,
-                            Token = HttpUtility.UrlEncode(token),
-                        },Request.Scheme);
-//                        string text = "Please Confirm Registration at our sute";
-                        var link = "<a href=\"" + confirmLink + "\">Confirm</a>";
-                        return Ok(confirmLink);
+                            UserName = model.UserName,
+                            Email = model.Email
+                        };
+
+                        var result = await userManager.CreateAsync(user, model.PasswordHash);
+
+                        if (result.Succeeded)
+                        {
+                            var token = await userManager.GenerateEmailConfirmationTokenAsync(user); // Create token form User
+                            var confirmLink = Url.Action("RegistreationConfirm", "Account", new
+                            {
+                                Id = user.Id,
+                                Token = HttpUtility.UrlEncode(token),
+                            }, Request.Scheme);
+                            //                        string text = "Please Confirm Registration at our sute";
+                            var link = "<a href=\"" + confirmLink + "\">Confirm</a>";
+                            return Ok(confirmLink);
+                        }
+                        return BadRequest(result.Errors + " Not Succeeded");
                     }
-                    return BadRequest(result.Errors+" Not Succeeded");
+                    return BadRequest("Email or userNaem is Existes");
                 }
-                return BadRequest("Email or userNaem is Existes");
-            }//end if check model
-            
+                return BadRequest("password too short");
+                }
             return BadRequest(model);
         }
 
@@ -104,6 +104,27 @@ namespace Project_v._0._3.Controllers
         {
             return dbContext.Users.Any(x => x.Email == email || x.UserName == userName);
         }
+        private bool IsValidEmail(string email)
+        {
+            string pattern = @"^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$";
+            // Create a regular expression object
+            Regex regex = new Regex(pattern);
+
+            // Use the regular expression to match the email
+            Match match = regex.Match(email);
+
+            // Return true if the email matches the pattern, otherwise false
+            return match.Success;
+        }
+        private bool PasswordMatch(string password)
+        {
+            if (password.Length < 6)
+            {
+                return true;
+            }
+            return false;
+        }
+
         ////////////////////////////////////////////////////////////////////////////////////////
         [HttpGet]
         [AllowAnonymous]
