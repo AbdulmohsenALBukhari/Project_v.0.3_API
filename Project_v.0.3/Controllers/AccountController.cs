@@ -69,7 +69,7 @@ namespace Project_v._0._3.Controllers
                     }
                     return BadRequest("Email or userNaem is Existes");
                 }
-                return BadRequest("password too short or email is valid");
+                return BadRequest("password too short or email is valid or user name to long maxLength 20");
                 }
             return BadRequest(model);
         }
@@ -100,6 +100,22 @@ namespace Project_v._0._3.Controllers
 
 
 
+        private bool UserNameMatch(string userName)
+        {
+            if (userName.Length < 3 || userName.Length >= 20)
+            {
+                return false;
+            }
+            string pattern = @"^[a-zA-Z0-9_]+$";
+            // Create a regular expression object
+            Regex regex = new Regex(pattern);
+
+            // Use the regular expression to match the email
+            Match match = regex.Match(userName);
+
+            // Return true if the email matches the pattern, otherwise false
+            return match.Success;
+        }
         private bool Existes(string email, string userName)
         {
             return dbContext.Users.Any(x => x.Email == email || x.UserName == userName);
@@ -123,22 +139,6 @@ namespace Project_v._0._3.Controllers
                 return false;
             }
             return true;
-        }
-        private bool UserNameMatch(string userName)
-        {
-            if (userName.Length < 3)
-            {
-                return false;
-            }
-            string pattern = @"^[a-zA-Z0-9_]+$";
-            // Create a regular expression object
-            Regex regex = new Regex(pattern);
-
-            // Use the regular expression to match the email
-            Match match = regex.Match(userName);
-
-            // Return true if the email matches the pattern, otherwise false
-            return match.Success;
         }
 
 
