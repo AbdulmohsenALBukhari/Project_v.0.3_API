@@ -113,6 +113,14 @@ namespace Project_v._0._3.Controllers
             return BadRequest("model is null or Model state is not valid");
         }
 
+        [HttpGet]
+        [Route("Logout")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Ok();
+        }
 
         ////////////////////////////////////////////////////////////////////////////////////////
         [HttpGet]
