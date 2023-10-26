@@ -67,7 +67,7 @@ namespace Project_v._0._3.Controllers
                             }, Request.Scheme);
                             //                        string text = "Please Confirm Registration at our sute";
                             var link = "<a href=\"" + confirmLink + "\">Confirm</a>";
-                            return Ok(confirmLink);
+                            return StatusCode(StatusCodes.Status200OK);
                         }
                         return BadRequest(result.Errors + " Not Succeeded");
                     }

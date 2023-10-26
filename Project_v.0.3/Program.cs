@@ -17,12 +17,17 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(
     builder.Configuration.GetConnectionString("MyConnection")
     ));
 
-//Connection with table and if condition login
+//Connection with table and if condition login or register
 builder.Services.AddIdentity<AccountUserModel, AccountRoleModel>(options =>
 {
     options.SignIn.RequireConfirmedEmail = false;
     options.Lockout.MaxFailedAccessAttempts = 6;
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Password.RequiredUniqueChars = 0;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
 
 }).AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
