@@ -71,7 +71,7 @@ namespace Project_v._0._3.Controllers
                         }
                         return BadRequest(result.Errors + " Not Succeeded");
                     }
-                    return BadRequest("Email or userNaem is Existes");
+                    return BadRequest("Email or userNaem is Existes"); // return StatusCode(StatusCodes.Status400BadRequest);
                 }
                 return BadRequest("password too short or email is valid or user name to long maxLength 20");
                 }
