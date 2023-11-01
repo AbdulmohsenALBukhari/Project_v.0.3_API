@@ -65,7 +65,7 @@ namespace Project_v._0._3.Controllers
                                 Id = user.Id,
                                 Token = HttpUtility.UrlEncode(token),
                             }, Request.Scheme);
-                            //                        string text = "Please Confirm Registration at our sute";
+                            string text = "Please Confirm Registration at our sute";
                             var link = "<a href=\"" + confirmLink + "\">Confirm</a>";
                             return StatusCode(StatusCodes.Status200OK);
                         }
@@ -83,15 +83,15 @@ namespace Project_v._0._3.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login(LoginModel model)
         {
-            await CreateAdmin();
             await CreateRoles();
+            await CreateAdmin();
             if (model != null && ModelState.IsValid)
             {
                 var userLogin = await userManager.FindByNameAsync(model.UserName);
                 if (userLogin != null && userLogin.EmailConfirmed)
                 {
                     //  check if user and password is true or fales and if user login more 3 time block user
-                    var result = await signInManager.PasswordSignInAsync(userLogin, model.PasswordHash, model.RememberMe, false);
+                    var result = await signInManager.PasswordSignInAsync(userLogin, model.PasswordHash, model.RememberMe, true);
                     if (result.Succeeded)
                     {
                         if (await roleManager.RoleExistsAsync("User"))
@@ -104,7 +104,7 @@ namespace Project_v._0._3.Controllers
                         var roleName = await GetRoleNameByUserId(userLogin.Id);
                         if (roleName != null)
                             AddCookies(userLogin.UserName, roleName, userLogin.Id, model.RememberMe);
-                        return Ok();
+                        return StatusCode(StatusCodes.Status200OK);
                     }
                     return BadRequest(result);
                 }
@@ -119,10 +119,17 @@ namespace Project_v._0._3.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Ok();
+            return StatusCode(StatusCodes.Status200OK);
         }
 
-        ////////////////////////////////////////////////////////////////////////////////////////
+        [HttpGet]
+        [Route("GetAllUseer")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<IEnumerable<AccountUserModel>>> GetAllUseer()
+        {
+            return await dbContext.Users.ToListAsync();
+        }
+
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> RegistreationConfirm(string id, string Token)
@@ -146,7 +153,6 @@ namespace Project_v._0._3.Controllers
             }
             return BadRequest("Error RegistreationConfirm");
         }
-       
 
         ////////////////////////////////////////////////////////////////////////////////////////
 
