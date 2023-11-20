@@ -130,6 +130,25 @@ namespace Project_v._0._3.Controllers
             return await dbContext.Users.ToListAsync();
         }
 
+        [AllowAnonymous]
+        [HttpGet]
+        [Route("GetRoleName/{userName}")]
+        public async Task<string> GetRoleName(string userName)
+        {
+            var user = await userManager.FindByNameAsync(userName);
+            if (user != null)
+            {
+                var userRole = await dbContext.UserRoles.FirstOrDefaultAsync(x => x.UserId == user.Id);
+                if (userRole != null)
+                {
+                    return await dbContext.Roles.Where(x => x.Id == userRole.RoleId).Select(x => x.Name).FirstOrDefaultAsync();
+                }
+            }
+
+            return StatusCode(StatusCodes.Status204NoContent);
+        }
+
+
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> RegistreationConfirm(string id, string Token)
