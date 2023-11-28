@@ -90,6 +90,7 @@ namespace Project_v._0._3.Controllers
                 var userLogin = await userManager.FindByNameAsync(model.UserName);
                 if (userLogin != null && userLogin.EmailConfirmed)
                 {
+                
                     //  check if user and password is true or fales and if user login more 3 time block user
                     var result = await signInManager.PasswordSignInAsync(userLogin, model.PasswordHash, model.RememberMe, true);
                     if (result.Succeeded)
@@ -127,14 +128,15 @@ namespace Project_v._0._3.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<AccountUserModel>>> GetAllUseer()
         {
-            return await dbContext.Users.ToListAsync();
+            return await dbContext.Users.AsNoTracking().ToListAsync();
         }
 
         [AllowAnonymous]
         [HttpGet]
         [Route("GetRoleName/{userName}")]
-        public async Task<string> GetRoleName(string userName)
+        public async Task<string?> GetRoleName(string userName)
         {
+            
             var user = await userManager.FindByNameAsync(userName);
             if (user != null)
             {
@@ -145,9 +147,8 @@ namespace Project_v._0._3.Controllers
                 }
             }
 
-            return StatusCode(StatusCodes.Status204NoContent);
+            return null;
         }
-
 
         [HttpGet]
         [AllowAnonymous]
@@ -156,7 +157,7 @@ namespace Project_v._0._3.Controllers
             // Check id or Token is empty
             if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(Token))
             {
-                return BadRequest("ID or Token is Empty");
+                return StatusCode(StatusCodes.Status200OK);
             }
             //  Find Id 
             var user = await userManager.FindByIdAsync(id);
@@ -166,11 +167,31 @@ namespace Project_v._0._3.Controllers
                 var result = await userManager.ConfirmEmailAsync(user, HttpUtility.UrlDecode(Token));
                 if (result.Succeeded)
                 {
-                    return Ok("Eamil Confirm Seccefuly");
+                    return StatusCode(StatusCodes.Status200OK);
                 }
-                return BadRequest(result.Errors + "Not Succeeded");
+                return StatusCode(StatusCodes.Status400BadRequest);
             }
-            return BadRequest("Error RegistreationConfirm");
+            return StatusCode(StatusCodes.Status400BadRequest);
+        }
+
+        [HttpGet]
+        [Route("CheckUserClim/{userName}&{role}")]
+        [Authorize]
+        public IActionResult CheckUserClim(string userName, string role)
+        {
+            var userNameClim = User.FindFirst(ClaimTypes.Name)?.Value;
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var ID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userNameClim != null && userRole != null && ID != null)
+            {
+                if (userName == userNameClim && role == userRole)
+                {
+                    return StatusCode(StatusCodes.Status200OK);
+                }
+            }
+            return StatusCode(StatusCodes.Status400BadRequest);
+
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////
@@ -242,7 +263,7 @@ namespace Project_v._0._3.Controllers
             }
         }
         // get Role Name by Id
-         private async Task<string> GetRoleNameByUserId(string id)
+         private async Task<string?> GetRoleNameByUserId(string id)
         {
             var userRole = await dbContext.UserRoles.FirstOrDefaultAsync(x => x.UserId == id);
             if (userRole != null)
