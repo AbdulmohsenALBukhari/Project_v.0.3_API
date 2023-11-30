@@ -185,7 +185,7 @@ namespace Project_v._0._3.Controllers
 
             if (userNameClim != null && userRole != null && ID != null)
             {
-                if (userName == userNameClim && role == userRole)
+                if (userName.ToLower() == userNameClim.ToLower() && role == userRole)
                 {
                     return StatusCode(StatusCodes.Status200OK);
                 }
