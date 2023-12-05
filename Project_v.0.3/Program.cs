@@ -50,6 +50,8 @@ builder.Services.AddAuthentication(options =>
     option.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     option.LogoutPath = "/Account/Logout";
     option.SlidingExpiration = true;
+    option.Cookie.SameSite = SameSiteMode.Lax;
+    option.Cookie.IsEssential = true;
 
 });
 
