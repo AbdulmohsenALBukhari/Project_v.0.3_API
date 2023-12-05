@@ -90,7 +90,13 @@ namespace Project_v._0._3.Controllers
                 var userLogin = await userManager.FindByNameAsync(model.UserName);
                 if (userLogin != null && userLogin.EmailConfirmed)
                 {
-                
+                    var ID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                    if(ID != null)
+                    {
+                        StatusCode(StatusCodes.Status400BadRequest);
+                    }
+
                     //  check if user and password is true or fales and if user login more 3 time block user
                     var result = await signInManager.PasswordSignInAsync(userLogin, model.PasswordHash, model.RememberMe, true);
                     if (result.Succeeded)
@@ -185,7 +191,7 @@ namespace Project_v._0._3.Controllers
 
             if (userNameClim != null && userRole != null && ID != null)
             {
-                if (userName.ToLower() == userNameClim.ToLower() && role == userRole)
+                if (userName.ToLower() == userNameClim.ToLower() && role.ToLower() == userRole.ToLower())
                 {
                     return StatusCode(StatusCodes.Status200OK);
                 }
@@ -305,7 +311,7 @@ namespace Project_v._0._3.Controllers
                 {
                     AllowRefresh = true,
                     IsPersistent = remember,
-                    ExpiresUtc = DateTime.UtcNow.AddMinutes(30),
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(1),
                 };
                 await HttpContext.SignInAsync
                     (

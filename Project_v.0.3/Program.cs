@@ -20,9 +20,9 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(
 //Connection with table and if condition login or register
 builder.Services.AddIdentity<AccountUserModel, AccountRoleModel>(options =>
 {
-    options.SignIn.RequireConfirmedEmail = false;
+    options.SignIn.RequireConfirmedEmail = true;
     options.Lockout.MaxFailedAccessAttempts = 6;
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
     options.Password.RequiredUniqueChars = 0;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireDigit = false;
@@ -54,7 +54,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 
-builder.Services.AddCors();
+//builder.Services.AddCors();
 builder.Services.AddCors((setup) =>
 {
     setup.AddPolicy("default", (options) =>
