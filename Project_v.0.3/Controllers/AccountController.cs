@@ -11,6 +11,8 @@ using Project_v._0._3.ModelViews;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Web;
+using System.Text;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace Project_v._0._3.Controllers
 {
@@ -56,17 +58,23 @@ namespace Project_v._0._3.Controllers
                         };
 
                         var result = await userManager.CreateAsync(user, model.PasswordHash);
-
+                        
                         if (result.Succeeded)
                         {
                             var token = await userManager.GenerateEmailConfirmationTokenAsync(user); // Create token form User
-                            var confirmLink = Url.Action("RegistreationConfirm", "Account", new
-                            {
-                                Id = user.Id,
-                                Token = HttpUtility.UrlEncode(token),
-                            }, Request.Scheme);
-                            string text = "Please Confirm Registration at our sute";
-                            var link = "<a href=\"" + confirmLink + "\">Confirm</a>";
+                            //var confirmLinkAsp = Url.Action("RegistreationConfirm", "Account", new
+                            //{
+                            //    Id = user.Id,
+                            //    Token = HttpUtility.UrlEncode(token),
+                            //}, Request.Scheme);
+
+                            var encodeToken = Encoding.UTF8.GetBytes(token);
+                            var angluarToken = WebEncoders.Base64UrlEncode(encodeToken);
+
+                            var confirmLink = $"http://localhost:4200/registerconfirm?ID={user.Id}&Token={angluarToken}";
+
+                            //string text = "Please Confirm Registration at our sute";
+                            //var link = "<a href=\"" + confirmLinkAsp + "\">Confirm</a>";
                             return StatusCode(StatusCodes.Status200OK);
                         }
                         return BadRequest(result.Errors + " Not Succeeded");
@@ -158,19 +166,22 @@ namespace Project_v._0._3.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        [Route("RegistreationConfirm")]
         public async Task<IActionResult> RegistreationConfirm(string id, string Token)
         {
             // Check id or Token is empty
             if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(Token))
             {
-                return StatusCode(StatusCodes.Status200OK);
+                return StatusCode(StatusCodes.Status400BadRequest);
             }
             //  Find Id 
             var user = await userManager.FindByIdAsync(id);
             if (user != null)
             {
                 //  check the token and decode link and make  in datebase
-                var result = await userManager.ConfirmEmailAsync(user, HttpUtility.UrlDecode(Token));
+                var angluarToken = WebEncoders.Base64UrlDecode(Token);
+                var encodeToken = Encoding.UTF8.GetString(angluarToken);
+                var result = await userManager.ConfirmEmailAsync(user, encodeToken);
                 if (result.Succeeded)
                 {
                     return StatusCode(StatusCodes.Status200OK);
